@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import mysql.connector
 import os
 
 # ---------------- PAGE CONFIG ----------------
@@ -16,11 +15,9 @@ st.write(
 )
 
 # =====================================================
-# ALWAYS USE CSV (MySQL won't work on Streamlit Cloud)
+# LOAD CSV FILE
 # =====================================================
-USE_CSV = True  # Always True for Streamlit Cloud
-
-csv_file = "OLAdataset.csv"
+csv_file = "rides.csv"  # CHANGED FROM "OLAdataset.csv" to "rides.csv"
 
 if not os.path.exists(csv_file):
     st.error(f"CSV file '{csv_file}' not found.")
@@ -29,7 +26,7 @@ if not os.path.exists(csv_file):
     st.write("Files in this folder:", os.listdir("."))
     
     # Let user upload the file
-    uploaded_file = st.file_uploader("Upload OLAdataset.csv", type=["csv"])
+    uploaded_file = st.file_uploader("Upload rides.csv", type=["csv"])  # Also changed here
     
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
