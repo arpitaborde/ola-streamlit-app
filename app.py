@@ -21,13 +21,13 @@ csv_file = "OLAdataset.csv"  # CHANGED FROM "OLAdataset.csv" to "rides.csv"
 
 if not os.path.exists(csv_file):
     st.error(f"CSV file '{csv_file}' not found.")
-    
+
     # Show what files ARE there
     st.write("Files in this folder:", os.listdir("."))
-    
+
     # Let user upload the file
     uploaded_file = st.file_uploader("Upload rides.csv", type=["csv"])  # Also changed here
-    
+
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.success("✅ File uploaded successfully!")
@@ -109,4 +109,3 @@ c4.metric(
 # ---------------- DATA TABLE ----------------
 st.subheader("Filtered Ride Data")
 st.dataframe(filtered_df, use_container_width=True)
-
