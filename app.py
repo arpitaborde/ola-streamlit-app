@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import mysql.connector
-import os  # <- for file check
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -13,35 +12,20 @@ st.set_page_config(
 st.title("OLA Ride Analytics Streamlit App🚘")
 st.write(
     "This application displays ride analytics using data fetched from a MySQL database "
-    "or a CSV file, with dropdown-based filters placed directly on the dashboard."
+    "with dropdown-based filters placed directly on the dashboard."
 )
 
-# =====================================================
-# DATA SOURCE SWITCH
-# =====================================================
-USE_MYSQL = False   # True = local MySQL | False = CSV
+# ---------------- MYSQL CONNECTION ----------------
+conn = mysql.connector.connect(
+    host="localhost",
+    user="powerbi",
+    password="PowerBI@123",
+    database="rides_data"
+)
 
-if USE_MYSQL:
-    try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="powerbi",
-            password="PowerBI@123",
-            database="rides_data"
-        )
-        df = pd.read_sql("SELECT * FROM rides", conn)
-    except Exception as e:
-        st.error(f"MySQL connection failed: {e}")
-        st.stop()
-else:
-    # Make sure file exists
-    csv_file = "OLAdataset.csv"
-    if not os.path.exists(csv_file):
-        st.error(f"CSV file '{csv_file}' not found. Upload it in the app folder or repo.")
-        st.stop()
-    df = pd.read_csv(csv_file)
+df = pd.read_sql("SELECT * FROM rides", conn)
 
-# ---------------- FILTER SECTION ----------------
+# ---------------- FILTER SECTION (TOP OF PAGE) ----------------
 st.subheader("Filters")
 
 f1, f2, f3, f4 = st.columns(4)
@@ -81,7 +65,7 @@ if booking_status != "All":
 
 if search_booking:
     filtered_df = filtered_df[
-        filtered_df["Booking_ID"].astype(str).str.contains(search_booking, na=False)
+        filtered_df["Booking_ID"].astype(str).str.contains(search_booking)
     ]
 
 # ---------------- KPI SECTION ----------------
@@ -90,21 +74,14 @@ st.subheader("Key Ride Metrics")
 c1, c2, c3, c4 = st.columns(4)
 
 c1.metric("Total Rides", len(filtered_df))
-
 c2.metric(
     "Completed Rides",
     len(filtered_df[filtered_df["Booking_Status"] == "Success"])
 )
-
 c3.metric(
     "Cancelled Rides",
-    len(filtered_df[
-        filtered_df["Booking_Status"]
-        .fillna("")
-        .str.contains("Cancel", case=False)
-    ])
+    len(filtered_df[filtered_df["Booking_Status"].str.contains("Cancel")])
 )
-
 c4.metric(
     "Total Revenue",
     f"₹ {filtered_df['Booking_Value'].sum():,.2f}"
