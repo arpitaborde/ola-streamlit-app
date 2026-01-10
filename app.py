@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import mysql.connector
+import os  # <- for file check
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -16,20 +17,29 @@ st.write(
 )
 
 # =====================================================
-# DATA SOURCE SWITCH (THIS IS THE ONLY IMPORTANT CHANGE)
+# DATA SOURCE SWITCH
 # =====================================================
-USE_MYSQL = False   # True = local MySQL | False = Streamlit Cloud (CSV)
+USE_MYSQL = False   # True = local MySQL | False = CSV
 
 if USE_MYSQL:
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="powerbi",
-        password="PowerBI@123",
-        database="rides_data"
-    )
-    df = pd.read_sql("SELECT * FROM rides", conn)
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="powerbi",
+            password="PowerBI@123",
+            database="rides_data"
+        )
+        df = pd.read_sql("SELECT * FROM rides", conn)
+    except Exception as e:
+        st.error(f"MySQL connection failed: {e}")
+        st.stop()
 else:
-    df = pd.read_csv("OLAdataset.csv")
+    # Make sure file exists
+    csv_file = "OLAdataset.csv"
+    if not os.path.exists(csv_file):
+        st.error(f"CSV file '{csv_file}' not found. Upload it in the app folder or repo.")
+        st.stop()
+    df = pd.read_csv(csv_file)
 
 # ---------------- FILTER SECTION ----------------
 st.subheader("Filters")
