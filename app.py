@@ -17,7 +17,7 @@ st.write(
 # =====================================================
 # LOAD CSV FILE
 # =====================================================
-csv_file = "rides.csv"  # CHANGED FROM "OLAdataset.csv" to "rides.csv"
+csv_file = "OLAdataset.csv"  # CHANGED FROM "OLAdataset.csv" to "rides.csv"
 
 if not os.path.exists(csv_file):
     st.error(f"CSV file '{csv_file}' not found.")
@@ -109,3 +109,4 @@ c4.metric(
 # ---------------- DATA TABLE ----------------
 st.subheader("Filtered Ride Data")
 st.dataframe(filtered_df, use_container_width=True)
+
