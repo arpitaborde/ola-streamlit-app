@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import mysql.connector
 import os
 
 # ---------------- PAGE CONFIG ----------------
@@ -11,31 +12,54 @@ st.set_page_config(
 # ---------------- HEADER ----------------
 st.title("OLA Ride Analytics Streamlit App🚘")
 st.write(
-    "This application displays ride analytics using data fetched from a CSV file."
+    "This application displays ride analytics using data fetched from a MySQL database "
+    "or a CSV file, with dropdown-based filters placed directly on the dashboard."
 )
 
 # =====================================================
-# LOAD CSV FILE
+# FILE UPLOAD OPTION
 # =====================================================
-csv_file = "OLAdataset.csv"  # CHANGED FROM "OLAdataset.csv" to "rides.csv"
+st.sidebar.header("📁 Upload Your Data")
+uploaded_file = st.sidebar.file_uploader(
+    "Choose a CSV or Excel file",
+    type=["csv", "xlsx", "xls"]
+)
 
-if not os.path.exists(csv_file):
-    st.error(f"CSV file '{csv_file}' not found.")
+# =====================================================
+# DATA SOURCE SWITCH
+# =====================================================
+USE_MYSQL = False   # True = local MySQL | False = CSV
 
-    # Show what files ARE there
-    st.write("Files in this folder:", os.listdir("."))
-
-    # Let user upload the file
-    uploaded_file = st.file_uploader("Upload rides.csv", type=["csv"])  # Also changed here
-
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.success("✅ File uploaded successfully!")
-    else:
+if uploaded_file is not None:
+    # Load uploaded file
+    try:
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        else:  # Excel file
+            df = pd.read_excel(uploaded_file)
+        st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
+    except Exception as e:
+        st.error(f"Error loading file: {e}")
+        st.stop()
+elif USE_MYSQL:
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="powerbi",
+            password="PowerBI@123",
+            database="rides_data"
+        )
+        df = pd.read_sql("SELECT * FROM rides", conn)
+    except Exception as e:
+        st.error(f"MySQL connection failed: {e}")
         st.stop()
 else:
+    # Make sure file exists
+    csv_file = "OLAdataset.csv"
+    if not os.path.exists(csv_file):
+        st.error(f"CSV file '{csv_file}' not found. Upload it in the app folder or repo.")
+        st.stop()
     df = pd.read_csv(csv_file)
-    st.success(f"✅ CSV file loaded: {len(df)} records")
 
 # ---------------- FILTER SECTION ----------------
 st.subheader("Filters")
